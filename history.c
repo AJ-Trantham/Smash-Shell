@@ -30,10 +30,6 @@
 
 //---------------------------------------------------------------------------
 
-
-// for an array you would want to store an array of pointers to structs
-// for a linked list you would use pointers to structs too. Look into this?
-// Look into circular array apparently wikidedia is a good place to start
 int size;
 
 //Define external variables
