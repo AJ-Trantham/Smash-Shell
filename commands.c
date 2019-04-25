@@ -59,7 +59,7 @@ int excecuteExternalCommand(char **argv){
 }
 
 void executeCommand(char *str){
-     strDup = strdup(str); //change
+    strDup = strdup(str); //change
     char* token = strtok(str, " ");
     char* cmd;
     int exitStatus = 0;
@@ -84,6 +84,11 @@ void executeCommand(char *str){
       clear_history();
       exit(0);
     }
+
+    //Should I take in whole cmd, would need to for history?
+
+    // If pipes are present maybe call a whole new function, that function could then call excecuteComds
+    // to do the individual commands where output is just changed with the file descriptors.
 
     else if(strcmp(cmd,"cd") == 0 && i == 2 ){
       //printf("%s\n", getcwd(cwd, 100));
@@ -120,11 +125,11 @@ void executeCommand(char *str){
       if(exitStatus == 127 || exitStatus < 0){
         cmd = "no-such-command";
       }
-	
+
 	//for(int j = 0; j < i; j++){
        // free(cmdPointers[j]);
     	  //}
-    
+
   }
     free(toks);
     add_history(strDup, exitStatus, sequenceNumber);
