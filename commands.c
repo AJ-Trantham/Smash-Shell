@@ -58,6 +58,7 @@ int excecuteExternalCommand(char **argv){
   return adjustedExitStatus;
 }
 
+/*Excecutes a command*/
 void executeCommand(char *str){
     strDup = strdup(str); //change
     char* token = strtok(str, " ");
@@ -76,6 +77,10 @@ void executeCommand(char *str){
 
     cmd = toks[0];
     sequenceNumber++;
+
+
+    // Need to check if there are any I/O redirects
+
 
     // the exit command: exit the utility
     if(strcmp(cmd,"exit") == 0 && i < 2) {
@@ -125,10 +130,6 @@ void executeCommand(char *str){
       if(exitStatus == 127 || exitStatus < 0){
         cmd = "no-such-command";
       }
-
-	//for(int j = 0; j < i; j++){
-       // free(cmdPointers[j]);
-    	  //}
 
   }
     free(toks);
