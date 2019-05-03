@@ -54,7 +54,6 @@ int main(int argc, char **argv){
 
     // Also check for no input, don't want to give it a new line unecessarily
     if(strlen(bfr) > 1){executeCommand(bfr);}
-    //printf("\n");
     fputs("$ ", stderr);
   }
 

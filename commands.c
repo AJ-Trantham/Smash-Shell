@@ -15,6 +15,16 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "history.c"
+//NEED TO INCLUDE WHATEVER IS NEEDED FOR OPEN API
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define _GNU_SOURCE             /* See feature_test_macros(7) */
+#include <fcntl.h>              /* Obtain O_* constant definitions */
+#include <unistd.h>
+
+
 
 
 
@@ -23,39 +33,211 @@ char **toks;
 char* strDup;
 
 
+//char *out;
+//char *in;
+
+/*Finds the arg in the arg array*/
+int findIn(char ** argv, int argvLen){
+  //int i = 0;
+  int argIndex = -1;
+  for(int i = 0; i < argvLen -1; i++){
+    //printf(argv[i]);
+    if(strstr(argv[i], "<") != NULL){
+      argIndex = i;
+    }
+  }
+  return argIndex;
+}
+
+/*Removes the I/O file name since it does not need to be execvped*/
+void cleanCmd(char **argv, int startingIndex){
+  int i = startingIndex;
+  while(argv[i] != NULL){
+    argv[i] = argv[i+1];
+    i++;
+  }
+}
+
+/*Finds the arg out the arg array*/
+int findOut(char ** argv, int argvLen){
+  int argIndex = -1;
+  for(int i = 0; i < argvLen -1; i++){
+    //printf(argv[i]);
+    if(strstr(argv[i], ">") != NULL){
+      argIndex = i;
+    }
+  }
+  return argIndex;
+}
+
+/*checks if there should be a redirect */
+int checkRedirect(char *cmd){
+  int IOcase = -1;
+  char * inFile;
+  char * outFile;
+  char *out = strstr(cmd, ">");
+  char *in = strstr(cmd, "<");
+
+  //printf("Through assignments \n");
+  // redirect both stdin and stdout - NOT GETTING IN HERE INF LOOP
+  if(in != NULL && out != NULL){
+    printf("Case 2");
+    //stdout
+    outFile = out + 1;
+    outFile = strtok(outFile, " ");
+    int fd = open(outFile, O_RDWR | O_CREAT, S_IRWXU); // sets stdout to next available fd 1
+
+
+    //stdin
+    int fd2;
+    inFile = in + 1;
+    inFile = strtok(inFile, " ");
+    if((fd2 = open(inFile, O_RDONLY, S_IRWXU)) < 0){
+      perror("open error");
+      return -1;
+    }
+
+    close(1);//close stdout
+    dup2(fd, 1); //set stdout to fd
+    close(fd); //close fd
+
+    close(0);
+    dup2(fd2, 0);
+    close(fd2);
+
+    IOcase = 2;
+  }
+
+  // redirect stdin case: 1
+  else if(in != NULL){
+    printf("Case 1");
+    int fd;
+    IOcase = 1;
+    inFile = in + 1;
+    inFile = strtok(inFile, " ");
+    //printf(fileName);
+    //int fd = open(fileName, O_RDWR | O_CREAT, S_IRWXU); //Do I want to open a file Here should be an existing file used for stdin
+    if((fd = open(inFile, O_RDONLY, S_IRWXU)) < 0){
+      perror("open error");
+      return -1;
+    }
+    close(0);
+    dup2(fd, 0);
+    close(fd);
+  }
+
+  // redirect stdout case: 0
+  else if(out != NULL){
+    printf("Case 0");
+    IOcase = 0;
+    outFile = out + 1;
+    outFile = strtok(outFile, " ");
+    int fd = open(outFile, O_RDWR | O_CREAT, S_IRWXU); // sets stdout to next available fd 1
+    close(1);//close stdout
+    dup2(fd, 1); //set stdout to fd
+    close(fd); //close fd
+  }
+
+  return IOcase;
+}
+
+// function to find which arg needs to be removed
+
 /*Function to exectute external commands*/
-int excecuteExternalCommand(char **argv){
+int excecuteExternalCommand(char **argv, char *str, int argvLen){
   int adjustedExitStatus = 0;
-  fflush(stdout);
 
-  // fork a new process
-  int pid = fork();
+    // fork a new process
+    int pid = fork();
 
-  //Child Process
-  if(pid == 0) {
-    execvp(argv[0],argv); //Execute the external command
-    //execvp exits if sucessful. This will only execute if execvp returns which only happens when ther is an error
-    perror(argv[0]);      //Execvp failed -- print the error message
-    free(toks);
-    free(strDup);
-    clear_history();
-    fclose(stdout);
-    exit(127); //Report failure to parent process
-  }
+    //Child Process
+    if(pid == 0) {
+      fflush(stdout);
 
-  //Error Forking
-  else if(pid < 0) {
-    perror("fork failed\n");
-  }
+      //printf("Starting\n");
+      int red = checkRedirect(str);
+      //printf("Finished Check Red\n");
+      int indexIn = findIn(argv, argvLen); // finds arg to remove before execvp
+      if(indexIn != -1){
+        //cleanCmd(argv, indexIn);
+      }
+      int indexOut = findOut(argv, argvLen); // finds arg to remove before execvp
+      if(indexOut != -1){
+        //cleanCmd(argv, indexOut);
+      }
 
-  // Parent Process
-  else {
-    int exitStatus;
-    int pid = wait(&exitStatus);  //Wait for child to exit and retrieve its status
-    if(pid == 0){}
-    adjustedExitStatus= WEXITSTATUS(exitStatus);  //retrieves child's exit status
-  }
-  return adjustedExitStatus;
+      //TODO: move code to methods or simplify
+      //TODO: Will also need to check if indexMethods =! -1 to remove the argv values
+      //TODO: Re-organize indexIn remove, indexOur remove as indexes will change when doin both
+
+
+      // double redirection - remove both files from the cmd
+      if(red == 2){
+        int i = indexOut;
+        while(argv[i] != NULL){
+          argv[i] = argv[i+1];
+          i++;
+        }
+
+        int j = indexIn;
+        while(argv[j] != NULL){
+          argv[j] = argv[j+1];
+          i++;
+        }
+      }
+
+      // out
+      else if(red == 0){
+        //argv[argvLen - 2] = NULL; // may want to make sure this removes the right arg id redirect is first
+        int i = indexOut;
+        while(argv[i] != NULL){
+          argv[i] = argv[i+1];
+          i++;
+        }
+      }
+
+      //in
+      if(red == 1){
+        int i = indexIn;
+        while(argv[i] != NULL){
+          argv[i] = argv[i+1];
+          i++;
+        }
+      }
+
+
+      //Do the history cmd, and check for I/O
+      if(strcmp(argv[0], "history") == 0) {
+        print_history();
+        exit(0);
+      }
+
+      else{
+        execvp(argv[0],argv); //Execute the external command
+        //execvp exits if sucessful. This will only execute if execvp returns which only happens when ther is an error
+        perror(argv[0]);      //Execvp failed -- print the error message
+        free(toks);
+        free(strDup);
+        clear_history();
+        fclose(stdout);
+        exit(127); //Report failure to parent process
+      }
+    }
+
+    //Error Forking
+    else if(pid < 0) {
+      perror("fork failed\n");
+    }
+
+    // Parent Process
+    else {
+      int exitStatus;
+      int pid = wait(&exitStatus);  //Wait for child to exit and retrieve its status
+      if(pid == 0){}
+      adjustedExitStatus= WEXITSTATUS(exitStatus); //retrieves child's exit status
+
+    }
+    return adjustedExitStatus;
 }
 
 /*Excecutes a command*/
@@ -78,9 +260,7 @@ void executeCommand(char *str){
     cmd = toks[0];
     sequenceNumber++;
 
-
-    // Need to check if there are any I/O redirects
-
+    //  checkRedirect(strDup);
 
     // the exit command: exit the utility
     if(strcmp(cmd,"exit") == 0 && i < 2) {
@@ -110,10 +290,11 @@ void executeCommand(char *str){
 
     }
 
+
     // history cmd
-    else if(strcmp(cmd, "history") == 0 && i < 2) {
-      print_history();
-    }
+    //else if(strcmp(cmd, "history") == 0 && i < 2) {
+      //print_history();
+    //}
 
     //externalCommand
     else {
@@ -126,7 +307,7 @@ void executeCommand(char *str){
       cmdPointers[i] = NULL;
 
       // call external command and return exit status
-      int externalExitStatus = excecuteExternalCommand(cmdPointers);
+      int externalExitStatus = excecuteExternalCommand(cmdPointers, strDup, i+1);
       exitStatus = externalExitStatus;
 
       if(exitStatus == 127 || exitStatus < 0){

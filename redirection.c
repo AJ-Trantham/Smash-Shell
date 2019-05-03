@@ -16,7 +16,7 @@
 #include <sys/wait.h>
 
 
-int getRedirect(){
+int getRedirect(char *str){
 
 
 }

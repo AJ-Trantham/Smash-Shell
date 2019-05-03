@@ -74,7 +74,7 @@ void add_history(char *cmd, int exitStatus, int sequenceNumber){
     struct Cmd *temp = headNode;
     headNode = headNode->next;
     free(temp->cmd);
-    free(temp); 
+    free(temp);
     size--;
   }
   newCmd = NULL;
