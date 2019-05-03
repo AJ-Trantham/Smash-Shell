@@ -94,6 +94,8 @@ void executeCommand(char *str){
 
     // If pipes are present maybe call a whole new function, that function could then call excecuteComds
     // to do the individual commands where output is just changed with the file descriptors.
+    //
+    // Need to use str... cmd to check if a pipe or redirect exists and then call an additional command to handle it
 
     else if(strcmp(cmd,"cd") == 0 && i == 2 ){
       //printf("%s\n", getcwd(cwd, 100));
