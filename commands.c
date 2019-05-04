@@ -290,12 +290,6 @@ void executeCommand(char *str){
 
     }
 
-
-    // history cmd
-    //else if(strcmp(cmd, "history") == 0 && i < 2) {
-      //print_history();
-    //}
-
     //externalCommand
     else {
       //fputs("ExternalCommand\n",stderr);
