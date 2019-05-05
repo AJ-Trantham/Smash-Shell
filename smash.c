@@ -42,7 +42,7 @@
 #define MAXLINE 4096
 
 //-----------------------Global Variables -------------------------------------
-char **tokens;
+
 int sigDetected = 0;
 //start thread that checks for child exit exitStatus
 int stop = 0;
