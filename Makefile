@@ -41,7 +41,7 @@
         EXE = smash
 
 #-------Define options passed by make to the compiler
-        CFLAGS = -Wall -std=c99
+        CFLAGS = -Wall -std=c99 -pthread
 
 #-------Define the name of the compiler to be used
         CC = gcc

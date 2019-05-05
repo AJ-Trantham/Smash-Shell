@@ -32,7 +32,9 @@
 #include <stdlib.h>
 #include <sys/wait.h>
 
-
+//Threads
+#include <pthread.h>
+#include <sys/time.h>
 
 #include "smash.h"
 #include "commands.c"
@@ -42,6 +44,11 @@
 //-----------------------Global Variables -------------------------------------
 char **tokens;
 int sigDetected = 0;
+//start thread that checks for child exit exitStatus
+pthread_t posixThreadId;
+int result;
+int threadExitStatus;
+void *pThreadExitStatus = &threadExitStatus;
 
 //------------------------Structs---------------------------------------------
 struct pipe{
@@ -56,6 +63,22 @@ void myHandler(int sigNumber) {
   fputs("\n$ ", stderr);
 }
 
+//--------------------------Thread Function--------------------------
+/**
+ ** This is where the child thread starts executing
+ */
+void *theThread(int exit, int pid) {
+
+  //Print the process pid and exit status
+  fputs("PID ", stderr);
+  fprintf(stderr, "%d", pid);
+  fputs(" exited, ",stderr);
+  fputs("status = ", stderr);
+  fprintf(stderr, "%d\n", exit);
+
+  pthread_exit((void *) 0);
+}
+
 //------------------------------MAIN-----------------------------------
 int main(int argc, char **argv){
 
@@ -68,6 +91,7 @@ int main(int argc, char **argv){
   //outer loop that processess a line of user input
   while(fgets(bfr, MAXLINE, stdin) != NULL){
 
+
     //Check for input that exceeds the expected length
     if(strlen(bfr) == 4096 && bfr[4095] != '\n'){
       fputs("Input is too long", stderr);
@@ -75,6 +99,10 @@ int main(int argc, char **argv){
     }
 
     bfr[strlen(bfr) - 1] = '\0'; //replace the last character with a NUL
+
+
+
+
 
     // Also check for no input, don't want to give it a new line unecessarily
     if(strlen(bfr) >= 1){
@@ -198,10 +226,19 @@ int main(int argc, char **argv){
 
           // Parent wait for children
            //,pid; pid = wait...
-          wait(&exitStatus);
+          int pid = wait(&exitStatus);
           adjustedExitStatus = WEXITSTATUS(exitStatus);
           //printf("PID %5d exited with %d\n",pid,exitStatus);
           cmdsExcecuted++;
+
+          //Create and start the new thread with default (NULL) attributes
+          result = pthread_create(&posixThreadId, NULL, theThread(adjustedExitStatus, pid), NULL);
+          if (result!=0) printf("pthread_create failed, error=%d\n",result);
+
+          //Wait for the child thread to exit
+          result = pthread_join(posixThreadId,pThreadExitStatus);
+          if (result!=0) printf("pthread_join failed, error=%d\n",result);
+          printf("threadExitStatus=%d\n",threadExitStatus);
         }
 
 
