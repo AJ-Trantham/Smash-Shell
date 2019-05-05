@@ -273,11 +273,6 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
     //Wait for the child thread to exit
     if(threadCreated == 1){
       result = pthread_join(posixThreadId, NULL);
-      free(toks);
-      free(historyEntry);
-      free(tokens);
-      free(strDup);
-      clear_history();
       if (result!=0) printf("pthread_join failed, error=%d\n",result);
       threadCreated = 0;
     }
