@@ -254,6 +254,7 @@ int main(int argc, char **argv){
   }
 
   printf("\n");
+  pthread_exit((void *) 0);
   //free(tokens);// don't free until very end here, let array override each time throught the loop
   return 0;
 }
