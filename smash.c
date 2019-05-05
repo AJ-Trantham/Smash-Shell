@@ -236,21 +236,21 @@ int main(int argc, char **argv){
       else{
          executeCommand(bfr);
       }
+      free(tokens);
+      free(historyEntry);
+      //Wait for the child thread to exit
+      if(threadCreated == 1){
+        result = pthread_join(posixThreadId, NULL);
+        if (result!=0) printf("pthread_join failed, error=%d\n",result);
+        threadCreated = 0;
+      }
     }
-    //Wait for the child thread to exit
-    if(threadCreated == 1){
-      result = pthread_join(posixThreadId, NULL);
-      if (result!=0) printf("pthread_join failed, error=%d\n",result);
-      threadCreated = 0;
-    }
-
     //check if $ needs to be printed
     if(sigDetected == 0){
       fputs("$ ", stderr);
     }
     sigDetected = 0;
-    free(tokens);
-    free(historyEntry);
+
   }
 
   printf("\n");

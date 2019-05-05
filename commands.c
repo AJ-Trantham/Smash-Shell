@@ -24,10 +24,6 @@
 #include <fcntl.h>              /* Obtain O_* constant definitions */
 #include <unistd.h>
 
-
-
-
-
 int sequenceNumber = 0;    //number of command recieved, used for history
 char **toks;
 char* strDup;
