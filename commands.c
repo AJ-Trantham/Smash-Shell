@@ -32,6 +32,8 @@ int sequenceNumber = 0;    //number of command recieved, used for history
 char **toks;
 char* strDup;
 
+char *historyEntry; //used by smash to add the complete history cmd, needs to be freed here
+
 pthread_t posixThreadId;
 int result;
 int threadCreated;
@@ -224,6 +226,7 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
         perror(argv[0]);      //Execvp failed -- print the error message
         free(toks);
         free(strDup);
+        free(historyEntry);
         clear_history();
         fclose(stdout);
         exit(127); //Report failure to parent process
@@ -286,6 +289,7 @@ int executeCommand(char *str){
     // the exit command: exit the utility
     if(strcmp(cmd,"exit") == 0 && i < 2) {
       free(toks);
+      free(historyEntry);
       free(strDup);//change
       clear_history();
       exit(0);

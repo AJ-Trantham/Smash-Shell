@@ -110,7 +110,7 @@ int main(int argc, char **argv){
       //Check for pipes
       int numPipes = 0;
       int numCmds = 0;
-      char *historyEntry = strdup(bfr);
+      historyEntry = strdup(bfr);
 
       char* token = strtok(bfr, "|");
 
