@@ -28,7 +28,7 @@
 
 
 
-static int sequenceNumber = 0;    //number of command recieved, used for history
+int sequenceNumber = 0;    //number of command recieved, used for history
 char **toks;
 char* strDup;
 
@@ -140,8 +140,6 @@ int checkRedirect(char *cmd){
   return IOcase;
 }
 
-// function to find which arg needs to be removed
-
 /*Function to exectute external commands*/
 int excecuteExternalCommand(char **argv, char *str, int argvLen){
   int adjustedExitStatus = 0;
@@ -233,16 +231,15 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
     // Parent Process
     else {
       int exitStatus;
-      int pid = wait(&exitStatus);  //Wait for child to exit and retrieve its status
-      if(pid == 0){}
-      adjustedExitStatus= WEXITSTATUS(exitStatus); //retrieves child's exit status
+      wait(&exitStatus);  //Wait for child to exit and retrieve its status
 
+      adjustedExitStatus= WEXITSTATUS(exitStatus); //retrieves child's exit status
     }
     return adjustedExitStatus;
 }
 
 /*Excecutes a command*/
-void executeCommand(char *str){
+int executeCommand(char *str){
     strDup = strdup(str); //change
     char* token = strtok(str, " ");
     char* cmd;
@@ -305,6 +302,7 @@ void executeCommand(char *str){
       int externalExitStatus = excecuteExternalCommand(cmdPointers, strDup, i+1);
       exitStatus = externalExitStatus;
 
+      // I don't think this does anything...
       if(exitStatus == 127 || exitStatus < 0){
         cmd = "no-such-command";
       }
@@ -313,4 +311,5 @@ void executeCommand(char *str){
     free(toks);
     add_history(strDup, exitStatus, sequenceNumber);
     free(strDup); //free strdup in mem change
+    return exitStatus;
 }

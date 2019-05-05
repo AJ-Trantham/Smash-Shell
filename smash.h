@@ -4,4 +4,4 @@
 //  smash.h -- Defines function prototypes and symbols for smash.c
 //
 //-----------------------------------------------------------------------------
-void executeCommand(char *str);
+int executeCommand(char *str);

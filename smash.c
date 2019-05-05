@@ -41,7 +41,7 @@
 
 //-----------------------Global Variables -------------------------------------
 char **tokens;
-//char* strDuplicate;
+int sigDetected = 0;
 
 //------------------------Structs---------------------------------------------
 struct pipe{
@@ -49,12 +49,18 @@ struct pipe{
   int outlet;
 };
 
-
-
+// --------------------Signal Handler--------------------------------
+void myHandler(int sigNumber) {
+  //write(STDERR_FILENO, "", 0);
+  sigDetected = 1;
+  fputs("\n$ ", stderr);
+}
 
 //------------------------------MAIN-----------------------------------
 int main(int argc, char **argv){
 
+
+  signal(SIGINT, myHandler);
   init_history();
   char bfr[MAXLINE];
 
@@ -73,9 +79,11 @@ int main(int argc, char **argv){
     // Also check for no input, don't want to give it a new line unecessarily
     if(strlen(bfr) >= 1){
 
+
       //Check for pipes
       int numPipes = 0;
       int numCmds = 0;
+      char *historyEntry = strdup(bfr);
 
       char* token = strtok(bfr, "|");
 
@@ -91,8 +99,13 @@ int main(int argc, char **argv){
       numCmds = i;
       numPipes = i -1;
 
+
       //pipes are present
       if(numPipes > 0){
+
+        sequenceNumber ++; //"increment" sequence for history, why not on its own?? This fixed
+        int exitStatus;
+        int adjustedExitStatus;
 
         // array to hold all struct of pipes
         struct pipe pipeArr[numPipes];
@@ -134,9 +147,9 @@ int main(int argc, char **argv){
             close(pipeArr[i].outlet);
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
-            executeCommand(tokens[i]);
+            int res = executeCommand(tokens[i]);
 
-            exit(0);
+            exit(res);
           }
 
           // if child and Producer/Consumer Pipe
@@ -151,9 +164,9 @@ int main(int argc, char **argv){
               close(pipeArr[i-1].inlet);
 
               //ececute the cmd for this child
-              executeCommand(tokens[i]);
+              int res = executeCommand(tokens[i]);
 
-              exit(0);
+              exit(res);
           }
 
           //if child and Consumer
@@ -166,8 +179,8 @@ int main(int argc, char **argv){
             close(pipeArr[i-1].inlet);      //
 
             //ececute the cmd for this child
-            executeCommand(tokens[i]);
-            exit(0);
+            int res = executeCommand(tokens[i]);
+            exit(res);
           }
 
           //when producer is finished,
@@ -184,11 +197,17 @@ int main(int argc, char **argv){
           }
 
           // Parent wait for children
-          int exitStatus; //,pid; pid = wait...
+           //,pid; pid = wait...
           wait(&exitStatus);
+          adjustedExitStatus = WEXITSTATUS(exitStatus);
           //printf("PID %5d exited with %d\n",pid,exitStatus);
           cmdsExcecuted++;
         }
+
+
+        //add entire cmd to add_history
+        add_history(historyEntry, adjustedExitStatus, sequenceNumber);
+        free(historyEntry);
       }
 
       //no pipes, proceed with single cmd
@@ -196,7 +215,11 @@ int main(int argc, char **argv){
         executeCommand(bfr);
       }
     }
-    fputs("$ ", stderr);
+    if(sigDetected == 0){
+      fputs("$ ", stderr);
+    }
+    sigDetected = 0;
+
   }
 
   printf("\n");
