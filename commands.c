@@ -149,7 +149,7 @@ int checkRedirect(char *cmd){
 /*Function to exectute external commands*/
 int excecuteExternalCommand(char **argv, char *str, int argvLen){
   int adjustedExitStatus = 0;
-  int proID; //for threading
+  int proID = 0; //for threading
 
     // fork a new process
     int pid = fork();

@@ -132,7 +132,7 @@ int main(int argc, char **argv){
 
         sequenceNumber ++; //"increment" sequence for history, why not on its own?? This fixed
         int exitStatus;
-        int adjustedExitStatus;
+        int adjustedExitStatus = 0;
 
         // array to hold all struct of pipes
         struct pipe pipeArr[numPipes];
