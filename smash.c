@@ -62,21 +62,7 @@ void myHandler(int sigNumber) {
   fputs("\n$ ", stderr);
 }
 
-//--------------------------Thread Function--------------------------
-/**
- ** This is where the child thread starts executing
- */
-void *theThread(void *arg) {
 
-  int (*values)[2]= (int (*)[2])arg;
-  //Print the process pid and exit status
-  fputs("PID ", stderr);
-  fprintf(stderr, "%d", *values[0]);
-  fputs(" exited, ",stderr);
-  fputs("status = ", stderr);
-  fprintf(stderr, "%d\n", *values[1]);
-  return NULL;
-}
 
 //------------------------------MAIN-----------------------------------
 int main(int argc, char **argv){
