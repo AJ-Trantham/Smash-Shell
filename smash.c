@@ -114,7 +114,7 @@ int main(int argc, char **argv){
 
         // for each cmd
         int cmdsExcecuted = 0;
-        //int producerDone = 0;
+        int producerDone = 0;
         int conDone = 0;
         while(cmdsExcecuted < numCmds){
           setbuf(stdout,NULL);
@@ -140,7 +140,7 @@ int main(int argc, char **argv){
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
             executeCommand(tokens[i]);
-            //producerDone = 1;
+            producerDone = 1;
 
             exit(0);
           }
@@ -154,10 +154,10 @@ int main(int argc, char **argv){
               dup2(pipeArr[i-1].outlet,0);     //stdin reads from previous pipe
 
               //Close extraneous file descriptors in child1
-              //close(pipeArr[i].outlet);
-              //close(pipeArr[i].inlet);
-              //close(pipeArr[i-1].outlet);      //Note... stdin remains open to pipe
-              //close(pipeArr[i-1].inlet);      //
+              close(pipeArr[i].outlet);
+              close(pipeArr[i].inlet);
+              close(pipeArr[i-1].outlet);      //Note... stdin remains open to pipe
+              close(pipeArr[i-1].inlet);      //
 
               executeCommand(tokens[i]);
 
@@ -180,12 +180,16 @@ int main(int argc, char **argv){
           }
 
           // needed
-          close(pipeArr[i].inlet);
+          if(cmdsExcecuted == 0){
+            printf("producer done");
+            close(pipeArr[i].inlet);
+          }
 
-
-          //if(conDone == 1){
-            //close(pipeArr[i].outlet);
-          //}
+          if(cmdsExcecuted == numCmds - 1){
+            printf("Consumer Done");
+            close(pipeArr[i-1].outlet);
+            close(pipeArr[i - 1].inlet);
+          }
 
           // Parentwait for children
           int exitStatus, pid;
