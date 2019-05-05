@@ -32,6 +32,12 @@ int sequenceNumber = 0;    //number of command recieved, used for history
 char **toks;
 char* strDup;
 
+pthread_t posixThreadId;
+int result;
+int threadCreated;
+int threadExitStatus;
+void *pThreadExitStatus = &threadExitStatus;
+void *theThread(void *arg);
 
 //char *out;
 //char *in;
@@ -143,6 +149,7 @@ int checkRedirect(char *cmd){
 /*Function to exectute external commands*/
 int excecuteExternalCommand(char **argv, char *str, int argvLen){
   int adjustedExitStatus = 0;
+  int proID; //for threading
 
     // fork a new process
     int pid = fork();
@@ -231,9 +238,25 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
     // Parent Process
     else {
       int exitStatus;
-      wait(&exitStatus);  //Wait for child to exit and retrieve its status
+      proID = wait(&exitStatus);  //Wait for child to exit and retrieve its status
 
       adjustedExitStatus= WEXITSTATUS(exitStatus); //retrieves child's exit status
+    }
+
+    int values[2];
+    values[0] = proID;
+    values[1] = adjustedExitStatus;
+
+    threadCreated = 1;
+    //Create and start the new thread with default (NULL) attributes
+    result = pthread_create(&posixThreadId, NULL, theThread, &values);
+    if (result!=0) printf("pthread_create failed, error=%d\n",result);
+
+    //Wait for the child thread to exit
+    if(threadCreated == 1){
+      result = pthread_join(posixThreadId, NULL);
+      if (result!=0) printf("pthread_join failed, error=%d\n",result);
+      threadCreated = 0;
     }
     return adjustedExitStatus;
 }

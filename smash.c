@@ -45,10 +45,9 @@
 char **tokens;
 int sigDetected = 0;
 //start thread that checks for child exit exitStatus
-pthread_t posixThreadId;
-int result;
-int threadExitStatus;
-void *pThreadExitStatus = &threadExitStatus;
+int stop = 0;
+
+
 
 //------------------------Structs---------------------------------------------
 struct pipe{
@@ -67,16 +66,16 @@ void myHandler(int sigNumber) {
 /**
  ** This is where the child thread starts executing
  */
-void *theThread(int exit, int pid) {
+void *theThread(void *arg) {
 
+  int (*values)[2]= (int (*)[2])arg;
   //Print the process pid and exit status
   fputs("PID ", stderr);
-  fprintf(stderr, "%d", pid);
+  fprintf(stderr, "%d", *values[0]);
   fputs(" exited, ",stderr);
   fputs("status = ", stderr);
-  fprintf(stderr, "%d\n", exit);
-
-  pthread_exit((void *) 0);
+  fprintf(stderr, "%d\n", *values[1]);
+  return NULL;
 }
 
 //------------------------------MAIN-----------------------------------
@@ -91,7 +90,7 @@ int main(int argc, char **argv){
   //outer loop that processess a line of user input
   while(fgets(bfr, MAXLINE, stdin) != NULL){
 
-
+    threadCreated = 0;
     //Check for input that exceeds the expected length
     if(strlen(bfr) == 4096 && bfr[4095] != '\n'){
       fputs("Input is too long", stderr);
@@ -231,14 +230,15 @@ int main(int argc, char **argv){
           //printf("PID %5d exited with %d\n",pid,exitStatus);
           cmdsExcecuted++;
 
+          int values[2];
+          values[0] = pid;
+          values[1] = adjustedExitStatus;
+
+          threadCreated = 1;
           //Create and start the new thread with default (NULL) attributes
-          result = pthread_create(&posixThreadId, NULL, theThread(adjustedExitStatus, pid), NULL);
+          result = pthread_create(&posixThreadId, NULL, theThread, &values);
           if (result!=0) printf("pthread_create failed, error=%d\n",result);
 
-          //Wait for the child thread to exit
-          result = pthread_join(posixThreadId,pThreadExitStatus);
-          if (result!=0) printf("pthread_join failed, error=%d\n",result);
-          printf("threadExitStatus=%d\n",threadExitStatus);
         }
 
 
@@ -249,14 +249,21 @@ int main(int argc, char **argv){
 
       //no pipes, proceed with single cmd
       else{
-        executeCommand(bfr);
+         executeCommand(bfr);
       }
     }
+    //Wait for the child thread to exit
+    if(threadCreated == 1){
+      result = pthread_join(posixThreadId, NULL);
+      if (result!=0) printf("pthread_join failed, error=%d\n",result);
+      threadCreated = 0;
+    }
+
+    //check if $ needs to be printed
     if(sigDetected == 0){
       fputs("$ ", stderr);
     }
     sigDetected = 0;
-
   }
 
   printf("\n");
