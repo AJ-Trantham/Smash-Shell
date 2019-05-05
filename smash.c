@@ -238,7 +238,6 @@ int main(int argc, char **argv){
           //Create and start the new thread with default (NULL) attributes
           result = pthread_create(&posixThreadId, NULL, theThread, &values);
           if (result!=0) printf("pthread_create failed, error=%d\n",result);
-
         }
 
 

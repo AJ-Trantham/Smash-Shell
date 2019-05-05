@@ -53,6 +53,11 @@
 #-------Define target "all" for building the executable(s)
 all:    rules.d $(EXE)
 
+#Define a rule for building the library.  Note:  The variable $? expands to
+#just those preprequisites that are out-of-date with the target.
+smashLib.a : $(OBJS)
+		ar r $@ $?
+
 # ------Rebuild rules.d if it' out of date with any *.c or *.h file gcc -MM
 rules.d: Makefile $(wildcard *.c) $(wildcard *.h)
 				gcc -MM $(wildcard *.c) >rules.d
@@ -61,7 +66,7 @@ rules.d: Makefile $(wildcard *.c) $(wildcard *.h)
 -include rules.d
 
 #-------Rule for linking the executable product
-$(EXE): $(OBJS)
+$(EXE): $(OBJS) smashLib.a
 				$(CC) $(CFLAGS) $^ -o $@
 
 #-------Rule for debugging
@@ -74,4 +79,4 @@ valgrind: debug
 
 #-------Rule for cleaning build and emacs artifacts
 clean:
-				rm -f $(OBJS) $(EXE) *~
+				rm -f $(OBJS) *.a $(EXE) *~
