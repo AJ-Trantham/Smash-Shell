@@ -236,14 +236,15 @@ int main(int argc, char **argv){
       else{
          executeCommand(bfr);
       }
-      free(tokens);
-      free(historyEntry);
+
       //Wait for the child thread to exit
       if(threadCreated == 1){
         result = pthread_join(posixThreadId, NULL);
         if (result!=0) printf("pthread_join failed, error=%d\n",result);
         threadCreated = 0;
       }
+      free(tokens);
+      free(historyEntry);      
     }
     //check if $ needs to be printed
     if(sigDetected == 0){
@@ -254,7 +255,7 @@ int main(int argc, char **argv){
   }
 
   printf("\n");
-  pthread_exit((void *) 0);
+
   //free(tokens);// don't free until very end here, let array override each time throught the loop
   return 0;
 }
