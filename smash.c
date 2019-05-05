@@ -59,8 +59,8 @@ int main(int argc, char **argv){
   char bfr[MAXLINE];
 
   fputs("$ ", stdout);
+  //outer loop that processess a line of user input
   while(fgets(bfr, MAXLINE, stdin) != NULL){
-
 
     //Check for input that exceeds the expected length
     if(strlen(bfr) == 4096 && bfr[4095] != '\n'){
@@ -70,11 +70,10 @@ int main(int argc, char **argv){
 
     bfr[strlen(bfr) - 1] = '\0'; //replace the last character with a NUL
 
-
-
     // Also check for no input, don't want to give it a new line unecessarily
     if(strlen(bfr) >= 1){
 
+      //Check for pipes
       int numPipes = 0;
       int numCmds = 0;
 
@@ -114,12 +113,10 @@ int main(int argc, char **argv){
 
         // for each cmd
         int cmdsExcecuted = 0;
-        int producerDone = 0;
-        int conDone = 0;
         while(cmdsExcecuted < numCmds){
+
           setbuf(stdout,NULL);
           int i = cmdsExcecuted;
-          //printf("%d\n",i);
 
           //Fork a child process
           int child = fork();
@@ -130,9 +127,7 @@ int main(int argc, char **argv){
 
           //if child and Producer
           if(child == 0 && cmdsExcecuted == 0){
-            printf("I am producer child\n");
 
-            //close(1);                        //Close stdout inherited from parent
             dup2(pipeArr[i].inlet,1);  //Child1's stdout must write to pipe
 
             //Close extraneous file descriptors in child1
@@ -140,25 +135,22 @@ int main(int argc, char **argv){
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
             executeCommand(tokens[i]);
-            producerDone = 1;
 
             exit(0);
           }
 
-
-
-          // if child and P/case
+          // if child and Producer/Consumer Pipe
           else if(child == 0 && cmdsExcecuted != (numCmds - 1)){
-              printf("I am P/C child\n");
               dup2(pipeArr[i].inlet,1);  // stdout writes to next pipe
               dup2(pipeArr[i-1].outlet,0);     //stdin reads from previous pipe
 
               //Close extraneous file descriptors in child1
               close(pipeArr[i].outlet);
               close(pipeArr[i].inlet);
-              close(pipeArr[i-1].outlet);      //Note... stdin remains open to pipe
-              close(pipeArr[i-1].inlet);      //
+              close(pipeArr[i-1].outlet);
+              close(pipeArr[i-1].inlet);
 
+              //ececute the cmd for this child
               executeCommand(tokens[i]);
 
               exit(0);
@@ -166,36 +158,35 @@ int main(int argc, char **argv){
 
           //if child and Consumer
           else if (child == 0 && cmdsExcecuted == (numCmds - 1)){
-            printf("I am Consumer child\n");
-            //close(0);                           //Close stdin inherited from bash
+
             dup2(pipeArr[i-1].outlet,0);     //Child3's stdin must read from pipe
 
             //Close extraneous file descriptors in child2
             close(pipeArr[i-1].outlet);      //Note... stdin remains open to pipe
             close(pipeArr[i-1].inlet);      //
 
+            //ececute the cmd for this child
             executeCommand(tokens[i]);
-            conDone = 1;
             exit(0);
           }
 
-          // needed
+          //when producer is finished,
+          //Parent no longer needs the producer side of the pipe and must close
+          //it or the consumer process (child3) will never reach EOF when reading.
           if(cmdsExcecuted == 0){
-            printf("producer done");
             close(pipeArr[i].inlet);
           }
 
+          //Parent no longer needs the consumer or producer side of the pipe
           if(cmdsExcecuted == numCmds - 1){
-            printf("Consumer Done");
             close(pipeArr[i-1].outlet);
             close(pipeArr[i - 1].inlet);
           }
 
-          // Parentwait for children
-          int exitStatus, pid;
-          pid=wait(&exitStatus);
-          printf("PID %5d exited with %d\n",pid,exitStatus);
-
+          // Parent wait for children
+          int exitStatus; //,pid; pid = wait...
+          wait(&exitStatus);
+          //printf("PID %5d exited with %d\n",pid,exitStatus);
           cmdsExcecuted++;
         }
       }

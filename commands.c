@@ -62,7 +62,6 @@ void cleanCmd(char **argv, int startingIndex){
 int findOut(char ** argv, int argvLen){
   int argIndex = -1;
   for(int i = 0; i < argvLen -1; i++){
-    //printf(argv[i]);
     if(strstr(argv[i], ">") != NULL){
       argIndex = i;
     }
@@ -81,7 +80,7 @@ int checkRedirect(char *cmd){
   //printf("Through assignments \n");
   // redirect both stdin and stdout - NOT GETTING IN HERE INF LOOP
   if(in != NULL && out != NULL){
-    printf("Case 2");
+
     //stdout
     outFile = out + 1;
     outFile = strtok(outFile, " ");
@@ -110,7 +109,7 @@ int checkRedirect(char *cmd){
 
   // redirect stdin case: 1
   else if(in != NULL){
-    printf("Case 1");
+
     int fd;
     IOcase = 1;
     inFile = in + 1;
@@ -128,7 +127,7 @@ int checkRedirect(char *cmd){
 
   // redirect stdout case: 0
   else if(out != NULL){
-    printf("Case 0");
+
     IOcase = 0;
     outFile = out + 1;
     outFile = strtok(outFile, " ");
@@ -169,6 +168,8 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
       //TODO: move code to methods or simplify
       //TODO: Will also need to check if indexMethods =! -1 to remove the argv values
       //TODO: Re-organize indexIn remove, indexOur remove as indexes will change when doin both
+
+      //TODO: double redirection is not working
 
 
       // double redirection - remove both files from the cmd
