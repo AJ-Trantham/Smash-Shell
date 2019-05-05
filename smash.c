@@ -263,9 +263,10 @@ int main(int argc, char **argv){
       fputs("$ ", stderr);
     }
     sigDetected = 0;
+    free(tokens);
   }
 
   printf("\n");
-  free(tokens); // don't free until very end here, let array override each time throught the loop
+  //free(tokens);// don't free until very end here, let array override each time throught the loop
   return 0;
 }
