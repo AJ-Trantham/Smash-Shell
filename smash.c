@@ -243,7 +243,7 @@ int main(int argc, char **argv){
 
         //add entire cmd to add_history
         add_history(historyEntry, adjustedExitStatus, sequenceNumber);
-        free(historyEntry);
+
       }
 
       //no pipes, proceed with single cmd
@@ -264,6 +264,7 @@ int main(int argc, char **argv){
     }
     sigDetected = 0;
     free(tokens);
+    free(historyEntry);
   }
 
   printf("\n");
