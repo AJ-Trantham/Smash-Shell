@@ -216,7 +216,7 @@ int main(int argc, char **argv){
           //printf("PID %5d exited with %d\n",pid,exitStatus);
           cmdsExcecuted++;
 
-          int values[2];
+          //int values[2];
           values[0] = pid;
           values[1] = adjustedExitStatus;
 

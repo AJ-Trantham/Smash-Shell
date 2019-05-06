@@ -37,7 +37,8 @@ int threadCreated;
 int threadExitStatus;
 void *pThreadExitStatus = &threadExitStatus;
 void *theThread(void *arg);
-int (*values)[2] = NULL;
+//int (*values)[2] = NULL;
+int values[2];
 
 //--------------------------Thread Function--------------------------
 /**
@@ -45,13 +46,14 @@ int (*values)[2] = NULL;
  */
 void *theThread(void *arg) {
 
-  values= (int (*)[2])arg;
+  //int (*values)[2]= (int (*)[2])arg;
+  int *p = (int *)arg;
   //Print the process pid and exit status
   fputs("PID ", stderr);
-  fprintf(stderr, "%d", *values[0]);
+  fprintf(stderr, "%d", p[0]);
   fputs(" exited, ",stderr);
   fputs("status = ", stderr);
-  fprintf(stderr, "%d\n", *values[1]);
+  fprintf(stderr, "%d\n",p[1]);
   return NULL;
 }
 
@@ -163,6 +165,7 @@ int checkRedirect(char *cmd){
 int excecuteExternalCommand(char **argv, char *str, int argvLen){
   int adjustedExitStatus = 0;
   int proID = 0; //for threading
+  int exitStatus = 0;
 
     // fork a new process
     int pid = fork();
@@ -249,16 +252,16 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
     else if(pid < 0) {
       perror("fork failed\n");
     }
-
+    
     // Parent Process
     else {
-      int exitStatus;
+     // int exitStatus;
       proID = wait(&exitStatus);  //Wait for child to exit and retrieve its status
 
       adjustedExitStatus= WEXITSTATUS(exitStatus); //retrieves child's exit status
     }
 
-    int values[2];
+    //int values[2];
     values[0] = proID;
     values[1] = adjustedExitStatus;
 
