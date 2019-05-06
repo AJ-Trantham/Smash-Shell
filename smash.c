@@ -161,7 +161,9 @@ int main(int argc, char **argv){
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
             int res = executeCommand(tokens[i]);
-
+	    free(tokens);
+            free(historyEntry);
+	    clear_history();
             exit(res);
           }
 
@@ -178,7 +180,9 @@ int main(int argc, char **argv){
 
               //ececute the cmd for this child
               int res = executeCommand(tokens[i]);
-
+	      free(tokens);
+	      free(historyEntry);
+	      clear_history();
               exit(res);
           }
 
@@ -193,8 +197,12 @@ int main(int argc, char **argv){
 
             //ececute the cmd for this child
             int res = executeCommand(tokens[i]);
-
-            exit(res);
+	    free(tokens);
+	    //free(strDup);
+	    clear_history();
+	    free(historyEntry);
+            
+	    exit(res);
           }
 
           //when producer is finished,
@@ -237,8 +245,16 @@ int main(int argc, char **argv){
 
       //no pipes, proceed with single cmd
       else{
+	// if(strcmp(bfr,"exit") == 0){
+		//pthread_detach(posixThreadId);
+	//	result = pthread_create(&posixThreadId, NULL, theThread, &values);
+          //if (result!=0) printf("pthread_create failed, error=%d\n",result);
+	//}
          executeCommand(bfr);
       }
+
+      //free(tokens);
+      //free(historyEntry);
 
       //Wait for the child thread to exit
       if(threadCreated == 1){
@@ -254,11 +270,12 @@ int main(int argc, char **argv){
       fputs("$ ", stderr);
     }
     sigDetected = 0;
-
+    //free(tokens);
+    //free(historyEntry);
   }
 
   printf("\n");
-
+  //This code will never get excecuted
   //free(tokens);// don't free until very end here, let array override each time throught the loop
   return 0;
 }

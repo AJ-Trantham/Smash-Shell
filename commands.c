@@ -32,6 +32,7 @@ char **tokens; //similar to comment below
 char *historyEntry; //used by smash to add the complete history cmd, needs to be freed here
 
 pthread_t posixThreadId;
+pthread_t posixThreadId2;
 int result;
 int threadCreated;
 int threadExitStatus;
@@ -267,14 +268,20 @@ int excecuteExternalCommand(char **argv, char *str, int argvLen){
 
     threadCreated = 1;
     //Create and start the new thread with default (NULL) attributes
-    result = pthread_create(&posixThreadId, NULL, theThread, &values);
+    result = pthread_create(&posixThreadId2, NULL, theThread, &values);
     if (result!=0) printf("pthread_create failed, error=%d\n",result);
 
+    //if( pthread_detach(posixThreadId) < 0){
+//	printf("Problem with thread detach");
+//	}
     //Wait for the child thread to exit
     if(threadCreated == 1){
-      result = pthread_join(posixThreadId, NULL);
+      
+      result = pthread_join(posixThreadId2, NULL);
+      //printf("%d",result);
       if (result!=0) printf("pthread_join failed, error=%d\n",result);
       threadCreated = 0;
+      //pthread_detach(posixThreadId);
     }
     return adjustedExitStatus;
 }
@@ -304,11 +311,15 @@ int executeCommand(char *str){
     // the exit command: exit the utility
     if(strcmp(cmd,"exit") == 0 && i < 2) {
       //free all memory before exiting
+      //threadCreated = 1;
+      //pthread_detach(posixThreadId);
+      //result = pthread_join(posixThreadId, NULL);
+      //if (result!=0) printf("pthread_join failed, error=%d\n",result);
       free(toks);
-      free(historyEntry);
       free(tokens);
       free(strDup);
       clear_history();
+      free(historyEntry);
       exit(0);
     }
 
