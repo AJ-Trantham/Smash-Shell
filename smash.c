@@ -161,11 +161,11 @@ int main(int argc, char **argv){
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
             int res = executeCommand(tokens[i]);
-            free(toks);
-            free(historyEntry);
-            free(tokens);
-            free(strDup);
-            clear_history();
+            //free(toks);
+            //free(historyEntry);
+            //free(tokens);
+            //free(strDup);
+            //clear_history();
             exit(res);
           }
 
@@ -182,11 +182,11 @@ int main(int argc, char **argv){
 
               //ececute the cmd for this child
               int res = executeCommand(tokens[i]);
-              free(toks);
-              free(historyEntry);
-              free(tokens);
-              free(strDup);
-              clear_history();
+              //free(toks);
+              //free(historyEntry);
+              //free(tokens);
+              //free(strDup);
+              //clear_history();
               exit(res);
           }
 
@@ -201,11 +201,11 @@ int main(int argc, char **argv){
 
             //ececute the cmd for this child
             int res = executeCommand(tokens[i]);
-            free(toks);
-            free(historyEntry);
-            free(tokens);
-            free(strDup);
-            clear_history();
+            //free(toks);
+            //free(historyEntry);
+            //free(tokens);
+            //free(strDup);
+            //clear_history();
             exit(res);
           }
 
@@ -233,6 +233,10 @@ int main(int argc, char **argv){
           values[0] = pid;
           values[1] = adjustedExitStatus;
 
+	  free(tokens);
+	  free(historyEntry);
+	  free(toks);
+	  free(strDup);
           threadCreated = 1;
           //Create and start the new thread with default (NULL) attributes
           result = pthread_create(&posixThreadId, NULL, theThread, &values);
