@@ -37,6 +37,7 @@ int threadCreated;
 int threadExitStatus;
 void *pThreadExitStatus = &threadExitStatus;
 void *theThread(void *arg);
+int (*values)[2] = NULL;
 
 //--------------------------Thread Function--------------------------
 /**
@@ -44,7 +45,7 @@ void *theThread(void *arg);
  */
 void *theThread(void *arg) {
 
-  int (*values)[2]= (int (*)[2])arg;
+  values= (int (*)[2])arg;
   //Print the process pid and exit status
   fputs("PID ", stderr);
   fprintf(stderr, "%d", *values[0]);
