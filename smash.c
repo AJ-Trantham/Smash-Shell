@@ -161,7 +161,11 @@ int main(int argc, char **argv){
             close(pipeArr[i].inlet);   //Note... stdout remains open to pipe
 
             int res = executeCommand(tokens[i]);
-
+            free(toks);
+            free(historyEntry);
+            free(tokens);
+            free(strDup);
+            clear_history();
             exit(res);
           }
 
@@ -178,7 +182,11 @@ int main(int argc, char **argv){
 
               //ececute the cmd for this child
               int res = executeCommand(tokens[i]);
-
+              free(toks);
+              free(historyEntry);
+              free(tokens);
+              free(strDup);
+              clear_history();
               exit(res);
           }
 
@@ -193,6 +201,11 @@ int main(int argc, char **argv){
 
             //ececute the cmd for this child
             int res = executeCommand(tokens[i]);
+            free(toks);
+            free(historyEntry);
+            free(tokens);
+            free(strDup);
+            clear_history();
             exit(res);
           }
 
@@ -244,7 +257,7 @@ int main(int argc, char **argv){
         threadCreated = 0;
       }
       free(tokens);
-      free(historyEntry);      
+      free(historyEntry);
     }
     //check if $ needs to be printed
     if(sigDetected == 0){
